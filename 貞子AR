@@ -1,0 +1,170 @@
+//[hiro]マーカを認識してマーカ平面上にポットを表示するサンプル kansei
+import processing.video.*; //ビデオを利用する際に必要
+import jp.nyatla.nyar4psg.*; //ARToolkitを利用する際に必要
+import saito.objloader.*;
+import ddf.minim.*;  //minimライブラリのインポート
+ 
+Minim minim;  //Minim型変数であるminimの宣言
+AudioPlayer song,himei;  //サウンドデータ格納用の変数
+
+PImage satomi,haikei;
+Capture cam;
+int camNo =0; //使用するカメラの番号を指定
+NyARBoard marker1; //マーカ1用の変数
+NyARBoard marker2; //マーカ2用の変数
+//NyARBoard marker3; //マーカ2用の変数
+OBJModel model;
+int x1, y1; //マーカ1のスクリーン座標用の変数
+int x2, y2; //マーカ2のスクリーン座標用の変数
+int z=0;
+float theta;
+float x;
+//int x3, y3;
+PMatrix3D markerMatrix1, markerMatrix2; // マーカ座標系への変換行列
+
+void setup()
+{
+  theta =0;
+  size(1280, 960, P3D);
+  String[] cameras = Capture.list(); //利用可能なカメラ一覧を取得
+  println("利用可能カメラ一覧");
+  println("カメラの数："+cameras.length);
+  for (int i = 0; i < cameras.length; i++) {  //一覧を表示
+    println("[" + i + "] " + cameras[i]);
+  }
+  println("-------------------------------");
+  cam = new Capture(this, cameras[camNo]); //カメラに接続
+  println("接続中のカメラ；[" + camNo + "] " + cameras[camNo]);
+  cam.start(); //撮影開始
+  frameRate(30);
+
+  marker1 = new NyARBoard(this, width, height, "camera_para.dat", "hatena.pat", 80); //マーカを平面とするオブジェクトの生成
+  marker2 = new NyARBoard(this, width, height, "camera_para.dat", "satomi.pat", 80); //マーカを平面とするオブジェクトの生成
+  //marker3 = new NyARBoard(this, width, height, "camera_para.dat", "neko.pat", 80); //マーカを平面とするオブジェクトの生成
+
+  // 3Dモデル(OBJ)の設定
+  model = new OBJModel(this, "sadako2.obj", "absolute", TRIANGLES);  // OBJファイルの読み込み
+  model.enableDebug();
+  model.scale(20);          // 表示するモデルの大きさ
+  model.translateToCenter();  // 中央に配置
+  noStroke();
+
+    minim = new Minim(this);  //初期化
+   song = minim.loadFile("Feels like Heaven.mp3");  //groove.mp3をロードする
+   himei = minim.loadFile("himei.wav");  //groove.mp3をロードする   
+  //スクリーン座用用の変数の初期化
+  x1 = 0;
+  y1 = 0;
+  x2 = 0;
+  y2 = 0;
+  //x3=0;
+  //y3=0;
+
+  satomi = loadImage("satomi.png");///////////////ねこ画像
+  haikei = loadImage("haikei.jpg");
+
+}
+
+void draw() {
+  if (cam.available()) { //新しいフレーム（画像）があるならば
+    background(100);
+    cam.read();
+    marker1.drawBackground(cam);//背景描画
+    //マーカ１に対する処理
+    if (marker1.detect(cam)) { //マーカ1を検出してる時だけ処理
+      marker1.beginTransform();//マーカ1座標系に設定(マーカ上に原点が来るように座標系が変わる)
+      {
+
+        markerMatrix1 = marker1.getMarkerMatrix();
+
+ 
+          ambientLight(255,80,80);  
+          directionalLight(155, 55, 55, 0, 1, -1);
+          
+          pushMatrix();//////黒
+            fill(200,200,200,180);        
+            translate(0,0,-140);   
+      image(haikei,-350+x,-150+2*x,600,360);
+              popMatrix();
+            
+            
+       
+    
+        pushMatrix(); 
+         // directionalLight(55, 155, 155, 0, 1, -1);
+       translate(-70,-60,-350+(z*1.5));     // 座標保存
+        rotateX(PI);       // オブジェクトの回転
+        rotateY(PI);
+        scale(8);
+        model.draw();            // 3Dモデルの描画
+        popMatrix();            // 座標保存
+        z++;
+       // println(z);
+        
+        if (mousePressed) {
+    z=0;    
+  }
+  if(z==0){
+    song.loop();  //再生
+  }
+
+        PVector[] pos = marker1.getMarkerVertex2D(); //マーカ1のスクリーン座標の取得
+        x1 = int(pos[0].x); //x座標の取得
+        y1 = int(pos[0].y); //y座標の取得
+     //   println("(1) 1st = (" + pos[0].x + "," + pos[0].y + ")"); //画面に座標を表示
+     println("くる〜きっとくる");
+      }
+      marker1.endTransform();  //マーカ1座標系を終了して元のスクリーン座標系に変換
+    }
+    //マーカ２に対する処理
+    if (marker2.detect(cam)) { //マーカ2を検出してる時だけ処理
+      marker2.beginTransform();//マーカ2座標系に設定(マーカ上に原点が来るように座標系が変わる)
+      {
+
+        markerMatrix2 = marker2.getMarkerMatrix();
+        markerMatrix2.invert();
+        markerMatrix2.apply(markerMatrix1);
+
+                  PVector zeroV = new PVector(0, 0, 0);
+        PVector catV = new PVector();
+        markerMatrix2.mult(zeroV, catV);
+        
+          rotateX(-3.14);
+          rotateY(3.14);
+          image(satomi, -100, -100, 200, 200);
+          
+          theta+=0.5;
+          x=6*sin(theta);
+          if (catV.mag() < 300) {
+      //  himei.play();
+       // himei.rewind();
+          z=z-2;
+          println("ぎゃー");
+        }
+          
+
+        
+        PVector[] pos = marker2.getMarkerVertex2D(); //マーカ1のスクリーン座標の取得
+        x2 = int(pos[0].x); //x座標の取得
+        y2 = int(pos[0].y); //y座標の取得
+      //  println("(2) 1st = (" + pos[0].x + "," + pos[0].y + ")" + catV.mag()); //画面に座標を表示
+       println("おりゃ");
+      }
+      marker2.endTransform();  //マーカ2座標系を終了して元のスクリーン座標系に変換
+    }
+  }
+
+}
+void stop()
+{
+  himei.close();
+  song.close();  //サウンドデータを終了
+  minim.stop();
+  super.stop();
+}
+
+void mousePressed(){
+  if(key==' '){
+    save("image.jpg");
+  }
+}
