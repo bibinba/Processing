@@ -1,0 +1,13 @@
+ ////OpenScadで作ったCNC用のデータです。
+ for(i=[0:10])
+     rotate([0,0,i*36]){
+    translate([17,0,0]){
+       cylinder(r=6,h=sin(i*9)*29+10);
+    }
+     }
+
+ translate([0,0,0]){
+ linear_extrude(26,scale=0){
+        square(28,true);
+    }
+}
