@@ -1,0 +1,16 @@
+import processing.svg.PGraphicsSVG;
+
+
+beginRecord(SVG, "PApplet.svg");
+size(800,800); 
+noFill();
+for(int i=0;i<560;i=i+60){
+ellipse(300+(i/3),320+(i/3), 60+i, 60+i);
+}
+for(int i=0;i<290;i=i+30){
+ellipse(250-(i/3),270-(i/3), 30+i, 30+i);
+}
+
+  
+  endShape();
+  endRecord();
