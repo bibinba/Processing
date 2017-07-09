@@ -1,0 +1,35 @@
+//////OpenScadで作った3Dプリント用のデータです。
+module apple(){/////module
+
+ intersection(){
+     cube(45, center=true);
+     sphere(28,$fn=100);
+     }
+ }
+ 
+ difference(){  /////sabun
+     
+     apple();
+     
+     for(i=[0:18]) {///////kazirimusi
+rotate([0,0,20*i]){   
+translate([14,16,5-(i/2)]){
+    
+     sphere(15-(i/5),$fn=50);
+     } 
+ }
+ }
+ 
+ translate([0,0,22]){/////////teppen
+      cylinder(9,0,10,true);
+     }
+     
+   for(i=[0:18]) {//////////なめらか
+rotate([0,0,20*i]){
+      translate([2.4,2.4,24]){  
+     sphere(3,$fn=50);
+     } 
+ }
+ }
+ 
+ }
