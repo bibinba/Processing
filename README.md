@@ -1,2 +1,2 @@
-# Processing
-単発コード
+# Processingやその他
+昔授業で使ったProcessingのコードや、デジタルファブリケーション用のデータです。OpenScadもあります
